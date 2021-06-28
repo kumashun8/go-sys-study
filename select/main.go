@@ -15,7 +15,7 @@ func randomizedSelect(A []int, p int, r int, i int) int {
 	q := randomizedPartion(A, p, r)
 	k := q - p + 1
 
-	printArrayWithPibbot(A, p, q, r)
+	printArrayWithPivot(A, p, q, r)
 	// fmt.Println("A:", A, "p:", p, "q:", q, "r:", r, "i:", i, "k:", k)
 	if i == k {
 		fmt.Println(" --- A. ピボットが答え")
@@ -49,7 +49,7 @@ func partion(A []int, p int, r int) int {
 	return i + 1
 }
 
-func printArrayWithPibbot(A []int, p int, q int, r int) {
+func printArrayWithPivot(A []int, p int, q int, r int) {
 	for i := 0; i < len(A); i++ {
 		if i == 0 && q == 0 {
 			fmt.Printf(" [    ]")
