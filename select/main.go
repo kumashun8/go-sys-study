@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"sort"
 )
 
 // 集合 A の i 番目の順序統計量を求める
@@ -75,7 +76,12 @@ func printArrayWithPivot(A []int, p int, q int, r int) {
 
 func main() {
 	A := []int{52, 16, 27, 37, 45, 68, 11, 72, 38, 50}
+	B := make([]int, len(A))
+	copy(B, A)
+	sort.Ints(B)
+
 	fmt.Println(A)
+	fmt.Println(B)
 	// fmt.Println("A:", A, "p:", 0, "q:", 10)
 
 	for i := 1; i <= len(A); i++ {
