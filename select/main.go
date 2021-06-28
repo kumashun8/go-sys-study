@@ -21,10 +21,10 @@ func randomizedSelect(A []int, p int, r int, i int) int {
 		fmt.Println(" --- A. ピボットが答え")
 		return A[q] // ピボットが i 番目の順序統計量
 	} else if i < k {
-		fmt.Println(" --- 再帰a. ピボット以下の部分配列のみを探索")
+		fmt.Println(" --- 再帰a. 下側の部分配列のみを探索")
 		return randomizedSelect(A, p, q-1, i) // ピボット以下の部分配列のみを探索
 	}
-	fmt.Println(" --- 再帰b. ピボット以上の部分配列のみを探索")
+	fmt.Println(" --- 再帰b. 上側の部分配列のみを探索")
 	return randomizedSelect(A, q+1, r, i-k) // ピボット以上の部分配列のみを探索
 }
 
@@ -52,7 +52,7 @@ func partion(A []int, p int, r int) int {
 func printArrayWithPivot(A []int, p int, q int, r int) {
 	for i := 0; i < len(A); i++ {
 		if i == 0 && q == 0 {
-			fmt.Printf(" [    ]")
+			fmt.Printf(" [ ] %d", A[0])
 			continue
 		}
 
@@ -65,7 +65,7 @@ func printArrayWithPivot(A []int, p int, q int, r int) {
 		}
 
 		if i < p || i > r {
-			fmt.Printf("   ")
+			fmt.Printf(" ##")
 		} else {
 			fmt.Printf(" %d", A[i])
 		}
@@ -74,11 +74,11 @@ func printArrayWithPivot(A []int, p int, q int, r int) {
 }
 
 func main() {
-	A := []int{52, 16, 27, 37, 45, 68, 49, 11, 72, 38, 50}
+	A := []int{52, 16, 27, 37, 45, 68, 11, 72, 38, 50}
 	fmt.Println(A)
 	// fmt.Println("A:", A, "p:", 0, "q:", 10)
 
-	for i := 1; i < len(A); i++ {
+	for i := 1; i <= len(A); i++ {
 		fmt.Println("===", i, "番目に小さい数 ===")
 		fmt.Println(randomizedSelect(A, 0, len(A)-1, i))
 		fmt.Println()
