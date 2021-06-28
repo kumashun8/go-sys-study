@@ -17,7 +17,6 @@ func randomizedSelect(A []int, p int, r int, i int) int {
 	k := q - p + 1
 
 	printArrayWithPivot(A, p, q, r)
-	// fmt.Println("A:", A, "p:", p, "q:", q, "r:", r, "i:", i, "k:", k)
 	if i == k {
 		fmt.Println(" --- A. ピボットが答え")
 		return A[q] // ピボットが i 番目の順序統計量
@@ -82,7 +81,6 @@ func main() {
 
 	fmt.Println(A)
 	fmt.Println(B)
-	// fmt.Println("A:", A, "p:", 0, "q:", 10)
 
 	for i := 1; i <= len(A); i++ {
 		fmt.Println("===", i, "番目に小さい数 ===")
