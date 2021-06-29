@@ -17,15 +17,17 @@ func randomizedSelect(A []int, p int, r int, i int) int {
 	k := q - p + 1
 
 	printArrayWithPivot(A, p, q, r)
-	if i == k {
+	switch {
+	case i == k:
 		fmt.Println(" --- A. ピボットが答え")
 		return A[q] // ピボットが i 番目の順序統計量
-	} else if i < k {
+	case i < k:
 		fmt.Println(" --- 再帰a. 下側の部分配列のみを探索")
 		return randomizedSelect(A, p, q-1, i) // ピボット以下の部分配列のみを探索
+	default:
+		fmt.Println(" --- 再帰b. 上側の部分配列のみを探索")
+		return randomizedSelect(A, q+1, r, i-k) // ピボット以上の部分配列のみを探索
 	}
-	fmt.Println(" --- 再帰b. 上側の部分配列のみを探索")
-	return randomizedSelect(A, q+1, r, i-k) // ピボット以上の部分配列のみを探索
 }
 
 func randomizedPartion(A []int, p int, r int) int {
