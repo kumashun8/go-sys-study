@@ -2,4 +2,4 @@ module go-sys-study
 
 go 1.16
 
-require rsc.io/quote v1.5.2
+require golang.org/x/tour v0.1.0
