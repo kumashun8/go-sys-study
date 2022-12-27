@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 type Event struct {
 	data    string
@@ -19,12 +22,12 @@ func newEvent(data string, id int) Event {
 	}
 }
 
-func (s Shard) getAllData(c chan []string) {
+func (s Shard) getAllData() []string {
 	list := make([]string, 0, len(s.events))
 	for _, v := range s.events {
 		list = append(list, v.data)
 	}
-	c <- list
+	return list
 }
 
 func main() {
@@ -47,9 +50,15 @@ func main() {
 			events:  []Event{},
 		},
 	}
-	c := make(chan []string)
+	c := []string{}
+	var wg sync.WaitGroup
 	for _, shard := range shardList {
-		go shard.getAllData(c)
+		wg.Add(1)
+		go func(s Shard) {
+			defer wg.Done()
+			c = append(c, s.getAllData()...)
+		}(shard)
 	}
-	fmt.Println(<-c, <-c, <-c)
+	wg.Wait()
+	fmt.Println(c)
 }
