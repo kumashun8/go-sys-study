@@ -2,8 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
-	"compress/gzip"
 	"fmt"
 	"io"
 	"net"
@@ -15,8 +13,17 @@ import (
 
 const ServerAddr = "localhost:8888"
 
-func isGZipAcceptable(request *http.Request) bool {
-	return strings.Contains(strings.Join(request.Header["Accept-Encoding"], ","), "gzip")
+// func isGZipAcceptable(request *http.Request) bool {
+// 	return strings.Contains(strings.Join(request.Header["Accept-Encoding"], ","), "gzip")
+// }
+
+var contents = []string{
+	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 }
 
 func processSession(conn net.Conn) {
@@ -39,27 +46,39 @@ func processSession(conn net.Conn) {
 			panic(err)
 		}
 		fmt.Println(string(dump))
-		response := http.Response{
-			StatusCode: 200,
-			ProtoMajor: 1,
-			ProtoMinor: 1,
-			Header:     make(http.Header),
+
+		fmt.Fprintf(conn, strings.Join([]string{
+			"HTTP/1.1 200 OK",
+			"Content-Type: text/plain",
+			"Transfer-Encoding: chunked",
+			"", "",
+		}, "\r\n"))
+		for _, content := range contents {
+			bytes := []byte(content)
+			fmt.Fprintf(conn, "%x\r\n%s\r\n", len(bytes), content)
 		}
-		if isGZipAcceptable(request) {
-			content := "Hello World (gzipped)\n"
-			var buffer bytes.Buffer
-			writer := gzip.NewWriter(&buffer)
-			io.WriteString(writer, content)
-			writer.Close()
-			response.Body = io.NopCloser(&buffer)
-			response.ContentLength = int64(buffer.Len())
-			response.Header.Set("Content-Encoding", "gzip")
-		} else {
-			content := "Hello World\n"
-			response.Body = io.NopCloser(strings.NewReader(content))
-			response.ContentLength = int64(len(content))
-		}
-		response.Write(conn)
+		fmt.Fprintf(conn, "0\r\n\r\n")
+		// 	response := http.Response{
+		// 		StatusCode: 200,
+		// 		ProtoMajor: 1,
+		// 		ProtoMinor: 1,
+		// 		Header:     make(http.Header),
+		// 	}
+		// 	if isGZipAcceptable(request) {
+		// 		content := "Hello World (gzipped)\n"
+		// 		var buffer bytes.Buffer
+		// 		writer := gzip.NewWriter(&buffer)
+		// 		io.WriteString(writer, content)
+		// 		writer.Close()
+		// 		response.Body = io.NopCloser(&buffer)
+		// 		response.ContentLength = int64(buffer.Len())
+		// 		response.Header.Set("Content-Encoding", "gzip")
+		// 	} else {
+		// 		content := "Hello World\n"
+		// 		response.Body = io.NopCloser(strings.NewReader(content))
+		// 		response.ContentLength = int64(len(content))
+		// 	}
+		// 	response.Write(conn)
 	}
 }
 
