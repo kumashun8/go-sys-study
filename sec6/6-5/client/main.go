@@ -2,71 +2,58 @@ package main
 
 import (
 	"bufio"
-	"compress/gzip"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"net/http/httputil"
-	"os"
-	"strings"
+	"strconv"
 )
 
 const ServerAddr = "localhost:8888"
 
 func main() {
-	sendMessages := []string{
-		"ASCII",
-		"PROGRAMMING",
-		"PLUS",
+	conn, err := net.Dial("tcp", ServerAddr)
+	if err != nil {
+		panic(err)
 	}
-	current := 0
-	var conn net.Conn = nil
+	defer conn.Close()
+	request, err := http.NewRequest("POST", "http://"+ServerAddr, nil)
+	if err != nil {
+		panic(err)
+	}
+	err = request.Write(conn)
+	if err != nil {
+		panic(err)
+	}
+	reader := bufio.NewReader(conn)
+	response, err := http.ReadResponse(reader, request)
+	if err != nil {
+		panic(err)
+	}
+	dump, err := httputil.DumpResponse(response, false)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(dump))
+	if len(response.TransferEncoding) < 1 || response.TransferEncoding[0] != "chunked" {
+		panic("wrong tranfer encoding")
+	}
 	for {
-		var err error
-		if conn == nil {
-			conn, err = net.Dial("tcp", ServerAddr)
-			if err != nil {
-				panic(err)
-			}
-			fmt.Printf("Access: %d\n", current)
-		}
-		request, err := http.NewRequest(
-			"POST",
-			"http://"+ServerAddr,
-			strings.NewReader(sendMessages[current]))
-		if err != nil {
-			panic(err)
-		}
-		request.Header.Set("Accept-Encoding", "gzip")
-		request.Write(conn)
-		response, err := http.ReadResponse(bufio.NewReader(conn), request)
-		if err != nil {
-			fmt.Println("Retry")
-			conn = nil
-			continue
-		}
-		dump, err := httputil.DumpResponse(response, false)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(string(dump))
-
-		defer response.Body.Close()
-		if response.Header.Get("Content-Encoding") == "gzip" {
-			reader, err := gzip.NewReader(response.Body)
-			if err != nil {
-				panic(err)
-			}
-			io.Copy(os.Stdout, reader)
-			reader.Close()
-		} else {
-			io.Copy(os.Stdout, response.Body)
-		}
-		current++
-		if current == len(sendMessages) {
+		sizeStr, err := reader.ReadBytes('\n')
+		if err == io.EOF {
 			break
 		}
+		size, err := strconv.ParseInt(string(sizeStr[:len(sizeStr)-2]), 16, 64)
+		if size == 0 {
+			break
+		}
+		if err != nil {
+			panic(err)
+		}
+		line := make([]byte, int(size))
+		io.ReadFull(reader, line)
+		reader.Discard(2)
+		fmt.Printf("%4d bytes: %s\n", size, string(line))
 	}
-	conn.Close()
 }
