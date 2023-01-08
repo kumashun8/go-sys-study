@@ -13,17 +13,15 @@ import (
 
 const ServerAddr = "localhost:8888"
 
-// func isGZipAcceptable(request *http.Request) bool {
-// 	return strings.Contains(strings.Join(request.Header["Accept-Encoding"], ","), "gzip")
-// }
-
+// 青空文庫: 羅生門より
+// https://www.aozora.gr.jp/cards/000879/files/127_15260.html
 var contents = []string{
-	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	"ある日の暮方の事である。一人の下人が、羅生門の下で雨やみを待っていた。",
+	"広い門の下には、この男のほかに誰もいない。ただ、所々丹塗にぬりの剥はげた、大きな円柱に、蟋蟀が一匹とまっている。",
+	"羅生門が、朱雀大路にある以上は、この男のほかにも、雨やみをする市女笠や揉烏帽子が、もう二三人はありそうなものである。それが、この男のほかには誰もいない。",
+	"何故かと云うと、この二三年、京都には、地震とか辻風とか火事とか饑饉とか云う災がつづいて起った。",
+	"そこで洛中のさびれ方は一通りではない。",
+	"旧記によると、仏像や仏具を打砕いて、その丹にがついたり、金銀の箔がついたりした木を、路ばたにつみ重ねて、薪の料しろに売っていたと云う事である。",
 }
 
 func processSession(conn net.Conn) {
@@ -47,7 +45,7 @@ func processSession(conn net.Conn) {
 		}
 		fmt.Println(string(dump))
 
-		fmt.Fprintf(conn, strings.Join([]string{
+		fmt.Fprint(conn, strings.Join([]string{
 			"HTTP/1.1 200 OK",
 			"Content-Type: text/plain",
 			"Transfer-Encoding: chunked",
@@ -58,27 +56,6 @@ func processSession(conn net.Conn) {
 			fmt.Fprintf(conn, "%x\r\n%s\r\n", len(bytes), content)
 		}
 		fmt.Fprintf(conn, "0\r\n\r\n")
-		// 	response := http.Response{
-		// 		StatusCode: 200,
-		// 		ProtoMajor: 1,
-		// 		ProtoMinor: 1,
-		// 		Header:     make(http.Header),
-		// 	}
-		// 	if isGZipAcceptable(request) {
-		// 		content := "Hello World (gzipped)\n"
-		// 		var buffer bytes.Buffer
-		// 		writer := gzip.NewWriter(&buffer)
-		// 		io.WriteString(writer, content)
-		// 		writer.Close()
-		// 		response.Body = io.NopCloser(&buffer)
-		// 		response.ContentLength = int64(buffer.Len())
-		// 		response.Header.Set("Content-Encoding", "gzip")
-		// 	} else {
-		// 		content := "Hello World\n"
-		// 		response.Body = io.NopCloser(strings.NewReader(content))
-		// 		response.ContentLength = int64(len(content))
-		// 	}
-		// 	response.Write(conn)
 	}
 }
 
