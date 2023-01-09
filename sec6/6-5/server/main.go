@@ -13,22 +13,51 @@ import (
 
 const ServerAddr = "localhost:8888"
 
-// 青空文庫: 羅生門より
-// https://www.aozora.gr.jp/cards/000879/files/127_15260.html
-var contents = []string{
-	"ある日の暮方の事である。一人の下人が、羅生門の下で雨やみを待っていた。",
-	"広い門の下には、この男のほかに誰もいない。ただ、所々丹塗にぬりの剥はげた、大きな円柱に、蟋蟀が一匹とまっている。",
-	"羅生門が、朱雀大路にある以上は、この男のほかにも、雨やみをする市女笠や揉烏帽子が、もう二三人はありそうなものである。それが、この男のほかには誰もいない。",
-	"何故かと云うと、この二三年、京都には、地震とか辻風とか火事とか饑饉とか云う災がつづいて起った。",
-	"そこで洛中のさびれ方は一通りではない。",
-	"旧記によると、仏像や仏具を打砕いて、その丹にがついたり、金銀の箔がついたりした木を、路ばたにつみ重ねて、薪の料しろに売っていたと云う事である。",
+// 順番に従ってconnに書き出す(goroutineで実行される)
+func writeToConn(sessionResponses chan chan *http.Response, conn net.Conn) {
+	defer conn.Close()
+	for sessionResponse := range sessionResponses {
+		response := <-sessionResponse
+		response.Write(conn)
+		close(sessionResponse)
+	}
 }
 
+// セッション内のリクエストを処理する
+func handleRequest(request *http.Request, resultReciever chan *http.Response) {
+	dump, err := httputil.DumpRequest(request, true)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(dump))
+	content := "Hello World\n"
+	// レスポンスを書き込む
+	// セッションを維持するためにKeep-Aliveでないといけない
+	response := &http.Response{
+		StatusCode:    200,
+		ProtoMajor:    1,
+		ProtoMinor:    1,
+		ContentLength: int64(len(content)),
+		Body:          io.NopCloser(strings.NewReader(content)),
+	}
+	// 処理が終わったらチャネルに書き込み、ブロックされていたwriteToConnの処理を再始動する
+	resultReciever <- response
+}
+
+// セッション1つを処理
 func processSession(conn net.Conn) {
 	fmt.Printf("Accept %v\n", conn.RemoteAddr())
+	// セッション内のリクエストを順にリクエストするためのチャネル
+	sessionResponses := make(chan chan *http.Response, 50)
+	defer close(sessionResponses)
+	// レスポンスを直列化してソケットに書き込む専用のgoroutine
+	go writeToConn(sessionResponses, conn)
+	reader := bufio.NewReader(conn)
 	for {
+		// レスポンスを受け取ってセッションのキューに入れる
 		conn.SetReadDeadline(time.Now().Add(5 * time.Second))
-		request, err := http.ReadRequest(bufio.NewReader(conn))
+		// リクエストを読み込む
+		request, err := http.ReadRequest(reader)
 		if err != nil {
 			neterr, ok := err.(net.Error)
 			if ok && neterr.Timeout() {
@@ -39,23 +68,10 @@ func processSession(conn net.Conn) {
 			}
 			panic(err)
 		}
-		dump, err := httputil.DumpRequest(request, true)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(string(dump))
-
-		fmt.Fprint(conn, strings.Join([]string{
-			"HTTP/1.1 200 OK",
-			"Content-Type: text/plain",
-			"Transfer-Encoding: chunked",
-			"", "",
-		}, "\r\n"))
-		for _, content := range contents {
-			bytes := []byte(content)
-			fmt.Fprintf(conn, "%x\r\n%s\r\n", len(bytes), content)
-		}
-		fmt.Fprintf(conn, "0\r\n\r\n")
+		sessionResponse := make(chan *http.Response)
+		sessionResponses <- sessionResponse
+		// 非同期でレスポンスを実行
+		go handleRequest(request, sessionResponse)
 	}
 }
 
