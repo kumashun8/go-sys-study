@@ -3,57 +3,59 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"net/http/httputil"
-	"strconv"
 )
 
 const ServerAddr = "localhost:8888"
 
 func main() {
-	conn, err := net.Dial("tcp", ServerAddr)
+	sendMessages := []string{
+		"ASCII",
+		"PROGRAMMING",
+		"PLUS",
+	}
+	var conn net.Conn = nil
+	var err error
+	requests := make([]*http.Request, 0, len(sendMessages))
+	conn, err = net.Dial("tcp", ServerAddr)
 	if err != nil {
 		panic(err)
 	}
 	defer conn.Close()
-	request, err := http.NewRequest("POST", "http://"+ServerAddr, nil)
-	if err != nil {
-		panic(err)
-	}
-	err = request.Write(conn)
-	if err != nil {
-		panic(err)
-	}
-	reader := bufio.NewReader(conn)
-	response, err := http.ReadResponse(reader, request)
-	if err != nil {
-		panic(err)
-	}
-	dump, err := httputil.DumpResponse(response, false)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(dump))
-	if len(response.TransferEncoding) < 1 || response.TransferEncoding[0] != "chunked" {
-		panic("wrong tranfer encoding")
-	}
-	for {
-		sizeStr, err := reader.ReadBytes('\n')
-		if err == io.EOF {
-			break
-		}
-		size, err := strconv.ParseInt(string(sizeStr[:len(sizeStr)-2]), 16, 64)
-		if size == 0 {
-			break
+
+	// リクエストだけ先に送る
+	for i := 0; i < len(sendMessages); i++ {
+		lastMessage := i == len(sendMessages)-1
+		request, err := http.NewRequest("GER", "http://"+ServerAddr+"?message="+sendMessages[i], nil)
+		if lastMessage {
+			request.Header.Add("Connection", "close")
+		} else {
+			request.Header.Add("Connection", "keep-alive")
 		}
 		if err != nil {
 			panic(err)
 		}
-		line := make([]byte, int(size))
-		io.ReadFull(reader, line)
-		reader.Discard(2)
-		fmt.Printf("%4d bytes: %s\n", size, string(line))
+		err = request.Write(conn)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("send: ", sendMessages)
+		requests = append(requests, request)
+	}
+
+	// レスポンスをまとめて受信
+	reader := bufio.NewReader(conn)
+	for _, request := range requests {
+		response, err := http.ReadResponse(reader, request)
+		if err != nil {
+			panic(err)
+		}
+		dump, err := httputil.DumpResponse(response, true)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(string(dump))
 	}
 }
