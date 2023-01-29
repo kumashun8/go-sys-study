@@ -45,7 +45,7 @@ func main() {
 	fmt.Printf("Close: %v\n", d.Sub(c))
 
 	if len(os.Args) == 1 {
-		fmt.Println("%s  [exec file name]", os.Args[0])
+		fmt.Printf("%s  [exec file name]", os.Args[0])
 		os.Exit(1)
 	}
 	info, err := os.Stat(os.Args[1])
