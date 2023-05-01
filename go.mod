@@ -1,6 +1,6 @@
 module go-sys-study
 
-go 1.19
+go 1.20
 
 require (
 	github.com/billziss-gh/cgofuse v1.5.0
