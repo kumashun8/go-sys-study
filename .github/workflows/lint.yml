@@ -4,7 +4,8 @@ on: ["pull_request"]
 jobs:
   lint:
     name: "Check lint"
-    runs-on: ubuntu-latest
+    # runs-on: ubuntu-latest
+    runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v3
     - uses: dominikh/staticcheck-action@v1.2.0
