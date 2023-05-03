@@ -6,6 +6,9 @@ require (
 	github.com/billziss-gh/cgofuse v1.5.0
 	github.com/edsrzf/mmap-go v1.1.0
 	github.com/fsnotify/fsnotify v1.6.0
+	github.com/kr/pty v1.1.8
+	github.com/mattn/go-colorable v0.1.12
+	github.com/mattn/go-isatty v0.0.14
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	gocloud.dev v0.29.0
 	golang.org/x/tour v0.1.0
@@ -13,6 +16,7 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go v1.44.253 // indirect
+	github.com/creack/pty v1.1.11 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
