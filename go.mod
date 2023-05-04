@@ -7,6 +7,7 @@ require (
 	github.com/edsrzf/mmap-go v1.1.0
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/kr/pty v1.1.8
+	github.com/lestrrat-go/server-starter v0.0.0-20210101230921-50cd1900b5bc
 	github.com/mattn/go-colorable v0.1.12
 	github.com/mattn/go-isatty v0.0.14
 	github.com/shirou/gopsutil v3.21.11+incompatible
