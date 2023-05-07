@@ -23,3 +23,6 @@ bin
 
 # System
 .vscode
+
+# for container
+alpine
